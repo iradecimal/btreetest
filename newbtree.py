@@ -20,7 +20,10 @@ class BTree:
     # Insert a key
     def insert(self, key):
         root = self.root
-        if len(root.keys) == (2 * self.m) - 1:
+
+        #if len(root.keys) >= self.nonleafmax:
+        print("max is: ", 2*self.m- 1)
+        if len(root.keys) == self.m:
             temp = BTreeNode()
             self.root = temp
             #insert  
@@ -43,7 +46,7 @@ class BTree:
             while i >= 0 and k[0] < x.keys[i][0]:
                 i -= 1
             i += 1
-            if len(x.child[i].keys) == (2 * self.m) - 1:
+            if len(x.child[i].keys) == self.m:
                 self.split_child(x, i)
                 if k[0] > x.keys[i][0]:
                     i += 1

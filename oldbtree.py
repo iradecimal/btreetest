@@ -16,6 +16,7 @@ class BTree:
     # Insert a key
     def insert(self, k):
         root = self.root
+        #print("max is: ", 2*self.t- 1)
         if len(root.keys) == (2 * self.t) - 1:
             temp = BTreeNode()
             self.root = temp
@@ -174,9 +175,18 @@ class BTree:
                 
 # Example usage
 B = BTree(3)
-for i in range(10):
-    B.insert((i, 2 * i))
+for i in range(12):
+    B.insert((i, chr(i + 65)))
 B.print_tree(B.root)
 B.delete(B.root, (8,))
+B.delete(B.root, (0,))
+B.delete(B.root, (9,))
+print("\n")
+B.print_tree(B.root)
+B.insert((12, chr(11 + 65)))
+print("\n")
+B.print_tree(B.root)
+B.insert((12, chr(11 + 65)))
+B.insert((0, chr(0 + 65)))
 print("\n")
 B.print_tree(B.root)
