@@ -18,23 +18,20 @@ class BTree:
         self.maxkeys = m-1
     # Insert a key
     
-    def search(node, key):
+    def search(self, node, key):
         i = 0
-        while i <= len(node.keys) and key[0] > node.keys[i][0]:
+        while i < len(node.keys) and key > node.keys[i][0]:
             i += 1
-        if i <= len(node.keys) and key[0] == node.keys[i][0]:
+        if i < len(node.keys) and key == node.keys[i][0]:
             return(node.keys[i])
         if node.leaf:
-            return null
-        return Search(node.child[i], key)
+            return
+        return self.search(node.child[i], key) # type: ignore
 
     def insert_key(self, key):
-        print("Inserting :", key)
         r = self.root
-        print("# of keys in root: ", len(self.root.keys))
         #check if the root's key are full
         if len(self.root.keys) >= self.maxkeys:
-            print("full")
             #create a new root node, then split and insert the key
             temp = BTreeNode()
             self.root = temp
@@ -47,14 +44,14 @@ class BTree:
     #recursive function for insertion
     def insert_nonfull(self, node, key):
         i = len(node.keys) - 1
-        
         if node.leaf:
             #find where the new key will belong within the node's list of keys
+            node.keys.append((None, None)) #create an empty node 
             while i >= 0 and key[0] < node.keys[i][0]:
                 node.keys[i+1] = node.keys[i]
                 i -= 1
             #insert the new key within the list at the specified position
-            node.keys.insert(i+1, key)
+            node.keys[i+1] = key
         else: #node is not a leaf
             #find where the new key will belong within the node's list of keys
             while i >= 0 and key < node.keys[i]:
@@ -89,43 +86,35 @@ class BTree:
             y.child = y.child[0: self.minkeys]
 
     def delete(self, node, key):
-        print(node.keys)
         i = 0
         while i < len(node.keys) and key[0] > node.keys[i][0]:
             i += 1
         if node.leaf: 
-            #print("here")
             #Case 1: Node is a leaf
             #confirm that key was found and pop it
             if i < len(node.keys) and key[0] == node.keys[i][0]:
-                print("found")
                 node.keys.pop(i)
-                return 123
+                return
         else:
-            #print("there")
             #Case 2: Key is found in an internal node:
             if i < len(node.keys) and key[0] == node.keys[i][0]:
-                #print("case 2")
                 return self.delete_internal_node(node, key, i)
-            self.delete(node.child[i], key)
             #Case 3: Key is not in node, go to the proper child
             if len(node.child[i].keys) < self.minkeys:
-                print("case 3")
-                self.fill(node, i)
-            #print("done")
+                self.borrow(node, i)
             self.delete(node.child[i], key)
 
     def delete_internal_node(self, node, key, i):
         #Case 2a: left-side child (predecessor) has enough keys
         if len(node.child[i].keys) >= self.minkeys:
-            left_key = self.get_predecessor(node, i)
+            pred_key = self.get_predecessor(node, i)
             node.keys[i] = pred_key
             self.delete(node.child[i], pred_key)
         #Case 2b: right-side child (successor) has enough keys
         elif len(node.child[i+1].keys) >= self.minkeys:
             succ_key = self.get_successor(node, i)
             node.keys[i] = succ_key
-            self.delete(node.child[i], pred_key)
+            self.delete(node.child[i], succ_key)
         #Case 2c: both sides don't have enough keys
         else:
             self.merge(node, i)
@@ -134,8 +123,8 @@ class BTree:
     def get_predecessor(self, node, i):
         curr = node.child[i]
         while not curr.leaf:
-            curr = curr.child[len(cur.child) - 1]
-        return cur.keys[len(cur.keys) - 1]
+            curr = curr.child[len(curr.child) - 1]
+        return curr.keys[len(curr.keys) - 1]
     
     def get_successor(self, node, i):
         curr = node.child[i]
@@ -160,25 +149,20 @@ class BTree:
         node.keys.pop(i)
         node.child.pop(i+1)
 
-        #if the root becomes empty, reducte the height of the tree
+        #if the root becomes empty, reduce the height of the tree
         if len(node.keys) == 0:
             self.root = child
 
     #helper function to fill a child with at least minkeys(m/2) keys
-    def fill(self, node, i):
-        self.print_tree(self.root)
-        print("fill")
+    def borrow(self, node, i):
         #borrow from the left/previous sibling
         if i != 0 and len(node.child[i-1].keys) >= self.minkeys:
-            print("a")
             self.borrow_from_prev(node, i)
         #borrow from the right/next sibling
         if i != len(node.child) - 1 and len(node.child[i+1].keys) >= self.minkeys:
-            print("b")
             self.borrow_from_next(node, i)
-        #merge with siblings
+        #both siblings are too small
         else:
-            print("c")
             #check if there is a next sibling to merge with (or use the prev instead) 
             if i != len(node.child) - 1:
                 self.merge(node, i)
@@ -229,12 +213,14 @@ B = BTree(4)
 for i in range(12):
     B.insert_key((i, chr(i + 65)))
 B.print_tree(B.root)
+B.search(B.root, 5)
 B.delete(B.root, (8,))
 B.delete(B.root, (0,))
 B.delete(B.root, (9,))
 print("\n")
 B.print_tree(B.root)
 B.insert_key((12, chr(11 + 65)))
+B.insert_key((13, chr(13 + 65)))
 print("\n")
 B.print_tree(B.root)
 B.insert_key((12, chr(11 + 65)))
