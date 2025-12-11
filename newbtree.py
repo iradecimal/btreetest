@@ -1,6 +1,9 @@
 from math import floor, ceil
 # Searching a key on a B-tree in Python
 
+traversals = 0
+comparisons = 0
+
 # Create a node
 class BTreeNode:
     def __init__(self, leaf=False):
@@ -19,8 +22,11 @@ class BTree:
     # Insert a key
     
     def search(self, node, key):
+        global traversals, comparisons
+        traversals += 1
         i = 0
         while i < len(node.keys) and key > node.keys[i][0]:
+            comparisons += 1
             i += 1
         if i < len(node.keys) and key == node.keys[i][0]:
             return(node.keys[i])
@@ -43,11 +49,15 @@ class BTree:
 
     #recursive function for insertion
     def insert_nonfull(self, node, key):
+        global traversals, comparisons
+        
+        traversals += 1
         i = len(node.keys) - 1
         if node.leaf:
             #find where the new key will belong within the node's list of keys
             node.keys.append((None, None)) #create an empty node 
             while i >= 0 and key[0] < node.keys[i][0]:
+                comparisons += 1
                 node.keys[i+1] = node.keys[i]
                 i -= 1
             #insert the new key within the list at the specified position
@@ -55,6 +65,7 @@ class BTree:
         else: #node is not a leaf
             #find where the new key will belong within the node's list of keys
             while i >= 0 and key < node.keys[i]:
+                comparisons += 1
                 i -= 1
             #increment the counter to point towards the right-hand side
             i += 1
@@ -86,8 +97,10 @@ class BTree:
             y.child = y.child[0: self.minkeys]
 
     def delete(self, node, key):
+        global comparisons
         i = 0
         while i < len(node.keys) and key[0] > node.keys[i][0]:
+            comparisons += 1
             i += 1
         if node.leaf: 
             #Case 1: Node is a leaf
